@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar Filters -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>Filters</h3>
+            <button onclick="clearFilters()" class="btn-reset">Reset All</button>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- Search -->
+            <div class="filter-group">
+                <label class="filter-label">Search</label>
+                <div class="search-box">
+                    <img src="/static/img/search-icon.svg" class="search-icon" alt="Search"
+                        style="width: 16px; height: 16px; top: 50%; transform: translateY(-50%);">
+                    <input type="text" id="search-input" placeholder="Name, Alias, ID...">
+                </div>
+            </div>
+
+            <!-- Popularity Range -->
+            <div class="filter-group">
+                <label class="filter-label">Popularity Score</label>
+                <div class="range-inputs">
+                    <input type="number" id="min-popularity" min="0" max="3000" placeholder="Min">
+                    <span>-</span>
+                    <input type="number" id="max-popularity" min="0" max="3000" placeholder="Max">
+                </div>
+            </div>
+
+            <!-- Origin Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Origin Country <span id="origin-count" class="count-badge"
+                        style="display:none">0</span></label>
+                <div class="custom-select" onclick="toggleDropdown('origin-dropdown')">
+                    <span>Select Origins</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="origin-dropdown" class="dropdown-content">
+                    <div class="dropdown-search">
+                        <input type="text" placeholder="Filter origins..."
+                            onkeyup="filterDropdown(this, 'origin-dropdown')">
+                    </div>
+                    <div class="dropdown-options">
+                        {% for origin in origins %}
+                        <label class="filter-option">
+                            <input type="checkbox" value="{{ origin }}" class="filter-cb origin-cb"> {{ origin }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Victim Sector Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Victim Sector <span id="victim-sector-count" class="count-badge"
+                        style="display:none">0</span></label>
+                <div class="custom-select" onclick="toggleDropdown('victim-sector-dropdown')">
+                    <span>Select Sectors</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="victim-sector-dropdown" class="dropdown-content">
+                    <div class="dropdown-search">
+                        <input type="text" placeholder="Filter sectors..."
+                            onkeyup="filterDropdown(this, 'victim-sector-dropdown')">
+                    </div>
+                    <div class="dropdown-options">
+                        {% for sector in victim_sectors %}
+                        <label class="filter-option">
+                            <input type="checkbox" value="{{ sector }}" class="filter-cb victim-sector-cb"> {{ sector }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Victim Country Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Victim Country <span id="victim-country-count" class="count-badge"
+                        style="display:none">0</span></label>
+                <div class="custom-select" onclick="toggleDropdown('victim-country-dropdown')">
+                    <span>Select Countries</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="victim-country-dropdown" class="dropdown-content">
+                    <div class="dropdown-search">
+                        <input type="text" placeholder="Filter countries..."
+                            onkeyup="filterDropdown(this, 'victim-country-dropdown')">
+                    </div>
+                    <div class="dropdown-options">
+                        {% for country in victim_countries %}
+                        <label class="filter-option">
+                            <input type="checkbox" value="{{ country }}" class="filter-cb victim-country-cb"> {{ country
+                            }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motivation Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Motivation <span id="motivation-count" class="count-badge"
+                        style="display:none">0</span></label>
+                <div class="custom-select" onclick="toggleDropdown('motivation-dropdown')">
+                    <span>Select Motivations</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="motivation-dropdown" class="dropdown-content">
+                    <div class="dropdown-search">
+                        <input type="text" placeholder="Filter motivations..."
+                            onkeyup="filterDropdown(this, 'motivation-dropdown')">
+                    </div>
+                    <div class="dropdown-options">
+                        {% for motivation in motivations %}
+                        <label class="filter-option">
+                            <input type="checkbox" value="{{ motivation }}" class="filter-cb motivation-cb"> {{
+                            motivation }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Malware Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Malware Family <span id="malware-count" class="count-badge"
+                        style="display:none">0</span></label>
+                <div class="custom-select" onclick="toggleDropdown('malware-dropdown')">
+                    <span>Select Malware</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="malware-dropdown" class="dropdown-content">
+                    <div class="dropdown-search">
+                        <input type="text" placeholder="Filter malware..."
+                            onkeyup="filterDropdown(this, 'malware-dropdown')">
+                    </div>
+                    <div class="dropdown-options">
+                        {% for mal in malware %}
+                        <label class="filter-option">
+                            <input type="checkbox" value="{{ mal }}" class="filter-cb malware-cb"> {{ mal }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badge Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Source <span id="badge-count" class="count-badge"
+                        style="display:none">0</span></label>
+                <div class="custom-select" onclick="toggleDropdown('badge-dropdown')">
+                    <span>Select Sources</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div id="badge-dropdown" class="dropdown-content">
+                    <div class="dropdown-search">
+                        <input type="text" placeholder="Filter sources..."
+                            onkeyup="filterDropdown(this, 'badge-dropdown')">
+                    </div>
+                    <div class="dropdown-options">
+                        {% for badge in badges %}
+                        <label class="filter-option">
+                            <input type="checkbox" value="{{ badge }}" class="filter-cb badge-cb"> {{ badge }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="filter-group" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <label class="filter-label">Display Mode</label>
+                <div class="view-switcher" style="width: 100%; display: flex; flex-direction: column;">
+                    <button class="view-option active" data-view="default" onclick="switchView('default')" style="width: 100%; justify-content: center;">
+                        <span>🔲</span> Cards
+                    </button>
+                    <button class="view-option" data-view="compact" onclick="switchView('compact')" style="width: 100%; justify-content: center;">
+                        <span>⚡</span> Compact
+                    </button>
+                    <button class="view-option" data-view="list" onclick="switchView('list')" style="width: 100%; justify-content: center;">
+                        <span>☰</span> List
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="applyFilters()" class="btn btn-primary full-width" style="margin-top: 1rem;">Apply
+                Filters</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header-section">
+            <h1>Threat Landscape Dashboard</h1>
+            <p class="text-secondary">Monitor and analyze threat actors targeting your organization.</p>
+        </div>
+
+        <!-- Relevant Actors Section -->
+        <section id="relevant-section" style="margin-bottom: 4rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="section-title" style="color: var(--danger); border-bottom: none;">High Priority Threats</h2>
+                <button onclick="openExportModal()" class="btn btn-outline btn-sm">Export TTP Matrix</button>
+            </div>
+            <div id="relevant-grid" class="grid">
+                <!-- Populated by JS -->
+                <div class="card" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <p class="text-secondary">Analyzing threat data...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- All Actors Section -->
+        <section>
+            <h2 class="section-title">Global Threat Database</h2>
+            <div id="actors-grid" class="grid">
+                <!-- Populated by JS -->
+                <div class="card" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <p class="text-secondary">Waiting for query...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Export TTP Configuration Modal -->
+<div id="export-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h2 style="margin: 0;">Export MITRE ATT&CK Layer</h2>
+            <button onclick="closeExportModal()" class="btn-close" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+
+        <div class="modal-body" style="padding: 2rem;">
+            <!-- Actor Selection -->
+            <div class="export-section" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Select Threat Actors</h3>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <button onclick="selectAllActors()" class="btn btn-sm btn-outline">Select All</button>
+                    <button onclick="deselectAllActors()" class="btn btn-sm btn-outline">Deselect All</button>
+                    <button onclick="selectRelevantOnly()" class="btn btn-sm btn-outline">Relevant Only</button>
+                </div>
+                <div id="actor-selection-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; background: var(--bg-secondary);">
+                    <p class="text-secondary">Loading actors...</p>
+                </div>
+            </div>
+
+            <!-- Timeframe Selection -->
+            <div class="export-section" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Timeframe</h3>
+                <select id="timeframe-select" class="filter-input" style="width: 100%;">
+                    <option value="all">All Time</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="last_3_months" selected>Last 3 Months</option>
+                    <option value="last_6_months">Last 6 Months</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+                <div id="custom-date-range" style="display: none; margin-top: 1rem; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Start Date</label>
+                        <input type="date" id="start-date" class="filter-input" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">End Date</label>
+                        <input type="date" id="end-date" class="filter-input" style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer Customization -->
+            <div class="export-section" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Layer Customization</h3>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Layer Name</label>
+                    <input type="text" id="layer-name" class="filter-input" value="Threat Actor TTPs" style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Description</label>
+                    <textarea id="layer-description" class="filter-input" rows="3" style="width: 100%; resize: vertical;">Export of threat actor TTPs for analysis</textarea>
+                </div>
+                <div style="padding: 0.75rem; background: var(--bg-hover); border-radius: 4px;">
+                    <small style="color: var(--text-secondary);">
+                        <strong>💡 Color Gradient:</strong> TTPs are colored automatically by MITRE ATT&CK Navigator based on scores (yellow → orange → red)
+                    </small>
+                </div>
+            </div>
+
+            <!-- Tactic Filtering -->
+            <div class="export-section" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Include Tactics</h3>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <button onclick="selectAllTactics()" class="btn btn-sm btn-outline">Select All</button>
+                    <button onclick="deselectAllTactics()" class="btn btn-sm btn-outline">Deselect All</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="reconnaissance" checked> Reconnaissance</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="resource-development" checked> Resource Development</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="initial-access" checked> Initial Access</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="execution" checked> Execution</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="persistence" checked> Persistence</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="privilege-escalation" checked> Privilege Escalation</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="defense-evasion" checked> Defense Evasion</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="credential-access" checked> Credential Access</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="discovery" checked> Discovery</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="lateral-movement" checked> Lateral Movement</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="collection" checked> Collection</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="command-and-control" checked> Command and Control</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="exfiltration" checked> Exfiltration</label>
+                    <label class="filter-option"><input type="checkbox" class="tactic-cb" value="impact" checked> Impact</label>
+                </div>
+            </div>
+
+            <!-- Additional Options -->
+            <div class="export-section" style="margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Additional Options</h3>
+                <label class="filter-option" style="display: block; margin-bottom: 0.75rem;">
+                    <input type="checkbox" id="show-subtechniques" checked> Show Sub-techniques
+                </label>
+                <label class="filter-option" style="display: block; margin-bottom: 0.75rem;">
+                    <input type="checkbox" id="aggregate-scores" checked> Aggregate Scores (count actors per technique)
+                </label>
+                <label class="filter-option" style="display: block; margin-bottom: 0.75rem;">
+                    <input type="checkbox" id="include-metadata"> Include Actor Metadata in Comments
+                </label>
+            </div>
+        </div>
+
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 1rem; padding: 1.5rem 2rem; border-top: 1px solid var(--border);">
+            <button onclick="closeExportModal()" class="btn btn-outline">Cancel</button>
+            <button onclick="performExport(event)" class="btn btn-primary">Generate & Download</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Close dropdowns when clicking outside
+    window.onclick = function (event) {
+        if (!event.target.closest('.custom-select') &&
+            !event.target.closest('.dropdown-content')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+
+    function toggleDropdown(id) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        for (var i = 0; i < dropdowns.length; i++) {
+            if (dropdowns[i].id !== id && dropdowns[i].classList.contains('show')) {
+                dropdowns[i].classList.remove('show');
+            }
+        }
+        document.getElementById(id).classList.toggle("show");
+    }
+
+    // Update counts on checkbox change
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('filter-cb')) {
+            updateCounts();
+        }
+    });
+
+    function updateCounts() {
+        updateCount('origin-cb', 'origin-count');
+        updateCount('victim-sector-cb', 'victim-sector-count');
+        updateCount('victim-country-cb', 'victim-country-count');
+        updateCount('motivation-cb', 'motivation-count');
+        updateCount('malware-cb', 'malware-count');
+        updateCount('badge-cb', 'badge-count');
+    }
+
+    function updateCount(checkboxClass, countId) {
+        const count = document.querySelectorAll('.' + checkboxClass + ':checked').length;
+        const el = document.getElementById(countId);
+        if (count > 0) {
+            el.textContent = count;
+            el.style.display = 'inline-block';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    function clearFilters() {
+        document.querySelectorAll('.filter-cb').forEach(cb => cb.checked = false);
+        document.getElementById('search-input').value = '';
+        document.getElementById('min-popularity').value = '';
+        document.getElementById('max-popularity').value = '';
+
+        document.querySelectorAll('.dropdown-search input').forEach(input => {
+            input.value = '';
+            const dropdownId = input.getAttribute('onkeyup').match(/'([^']+)'/)[1];
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.querySelectorAll('.filter-option').forEach(label => {
+                label.style.display = '';
+            });
+        });
+
+        updateCounts();
+        applyFilters();
+    }
+
+    function applyFilters() {
+        loadActors();
+        loadRelevantActors();
+    }
+
+    function filterDropdown(input, dropdownId) {
+        const searchText = input.value.toLowerCase();
+        const dropdown = document.getElementById(dropdownId);
+        const options = dropdown.querySelectorAll('.filter-option');
+
+        options.forEach(label => {
+            const text = label.textContent.toLowerCase();
+            if (text.includes(searchText)) {
+                label.style.display = '';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

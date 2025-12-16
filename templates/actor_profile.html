@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-header-bg"></div>
+
+<div class="container profile-container">
+    <!-- Sidebar -->
+    <div class="profile-sidebar">
+        <img src="/actor/{{ actor.id }}/avatar.svg" alt="{{ actor.name }}" class="large-avatar" onerror="this.style.display='none'">
+
+        <div class="card">
+            <h3 class="section-title">Threat Profile</h3>
+            <div class="actor-stats" style="grid-template-columns: 1fr;">
+                {% if actor.popularity and actor.popularity > 0 %}
+                <div class="stat-box">
+                    <div class="stat-label">Popularity</div>
+                    <div class="stat-value"
+                        style="color: {{ 'var(--danger)' if actor.popularity > 1000 else 'var(--success)' }}">{{
+                        actor.popularity }}</div>
+                </div>
+                {% endif %}
+
+                {% if actor.first_seen_at %}
+                <div class="stat-box">
+                    <div class="stat-label">First Seen</div>
+                    <div class="stat-value mono">{{ actor.first_seen_at[:10] }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% set motivations_list = actor.motivations | from_json %}
+            {% if motivations_list or actor.motivation %}
+            <div style="margin-top: 1.5rem;">
+                <h4 class="stat-label" style="margin-bottom: 0.5rem;">Motivations</h4>
+                {% if motivations_list %}
+                {% for motivation in motivations_list %}
+                <span class="tag purple">{{ motivation }}</span>
+                {% endfor %}
+                {% elif actor.motivation and actor.motivation != 'Unknown' %}
+                <span class="tag purple">{{ actor.motivation }}</span>
+                {% else %}
+                <span class="text-muted mono" style="font-size: 0.8rem;">No info</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 1.5rem;">
+                <h4 class="stat-label" style="margin-bottom: 0.5rem;">Aliases</h4>
+                {% set aliases = actor.aliases | from_json %}
+                {% if aliases %}
+                {% for alias in aliases[:8] %}
+                <span class="tag default">{{ alias }}</span>
+                {% endfor %}
+                {% if aliases | length > 8 %}
+                <span class="tag default">+{{ aliases | length - 8 }}</span>
+                {% endif %}
+                {% else %}
+                <span class="text-muted mono" style="font-size: 0.8rem;">None Known</span>
+                {% endif %}
+            </div>
+
+            {% if actor.knowledge_base_url %}
+            <div style="margin-top: 2rem;">
+                <a href="{{ actor.knowledge_base_url }}" target="_blank" class="btn btn-outline"
+                    style="width: 100%; box-sizing: border-box;">
+                    External Intel ↗
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="profile-main">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.25rem;">{{ actor.name }}</h1>
+            <div class="mono text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">ID: {{ actor.id }}</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% for badge in actor.badges | from_json %}
+                <span class="tag blue">{{ badge }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Intelligence Summary -->
+        <div class="card">
+            <h3 class="section-title">Intelligence Summary</h3>
+            <p style="line-height: 1.8; color: var(--text-secondary); font-size: 1.05rem;">
+                {{ actor.description or "No detailed intelligence available for this threat actor." }}
+            </p>
+        </div>
+
+        <!-- Victimology | Malware Arsenal -->
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <!-- Victimology -->
+            <div class="card">
+                <h3 class="section-title">Victimology</h3>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 class="stat-label">Origin Countries</h4>
+                    <div style="margin-top: 0.5rem;">
+                        {% set origins = actor.origin_countries | from_json %}
+                        {% set valid_origins = origins | reject('equalto', 'Unknown') | list %}
+                        {% if valid_origins %}
+                        {% for origin in valid_origins %}
+                        <span class="tag red">{{ origin }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <span class="text-muted mono" style="font-size: 0.8rem;">No info</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 class="stat-label">Targeted Sectors</h4>
+                    <div style="margin-top: 0.5rem;">
+                        {% set sectors = actor.victim_sectors | from_json %}
+                        {% set valid_sectors = sectors | reject('equalto', 'Unknown') | list %}
+                        {% if valid_sectors %}
+                        {% for sector in valid_sectors %}
+                        <span class="tag blue">{{ sector }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <span class="text-muted mono" style="font-size: 0.8rem;">No info</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 class="stat-label">Targeted Countries</h4>
+                    <div style="margin-top: 0.5rem;">
+                        {% set countries = actor.victim_countries | from_json %}
+                        {% set valid_countries = countries | reject('equalto', 'Unknown') | list %}
+                        {% if valid_countries %}
+                        {% for country in valid_countries %}
+                        <span class="tag default">{{ country }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <span class="text-muted mono" style="font-size: 0.8rem;">No info</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="stat-label">Observed Targets</h4>
+                    <div style="margin-top: 0.5rem;">
+                        {% set targets = actor.target_entities | from_json %}
+                        {% set countries = actor.victim_countries | from_json %}
+                        {% set filtered_targets = [] %}
+                        {% for target in targets %}
+                        {% if target not in countries and target != 'Unknown' %}
+                        {% set _ = filtered_targets.append(target) %}
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if filtered_targets %}
+                        {% for target in filtered_targets %}
+                        <span class="tag default" style="border-color: var(--primary);">{{ target }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <span class="text-muted mono" style="font-size: 0.8rem;">No info</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Malware Arsenal -->
+            {% set malware_list = actor.associated_malware | from_json %}
+            <div class="card">
+                <h3 class="section-title">Malware Arsenal{% if malware_list %} ({{ malware_list | length }}){% endif %}</h3>
+                {% if malware_list %}
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 300px; overflow-y: auto;">
+                    {% for malware in malware_list %}
+                    <span class="tag red" title="{{ malware.id }}">{{ malware.label }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <span class="text-muted mono" style="font-size: 0.8rem;">No associated malware identified</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- MITRE ATT&CK TTPs -->
+        {% if actor.ttps %}
+        <div class="card">
+            <h3 class="section-title">MITRE ATT&CK TTPs ({{ actor.ttps | length }})</h3>
+            <div class="ttp-grid">
+                {% for ttp in actor.ttps | sort(attribute='mitre_id') %}
+                {% if ttp.mitre_id %}
+                <a href="https://attack.mitre.org/techniques/{{ ttp.mitre_id.replace('.', '/') }}/" target="_blank"
+                    class="ttp-card">
+                    <div class="ttp-id">{{ ttp.mitre_id }}</div>
+                    <div class="ttp-name">{{ ttp.name }}</div>
+
+                    <div style="margin-top: 0.5rem;">
+                        {% set tactics = ttp.tactics | from_json %}
+                        {% for tactic in tactics[:2] %}
+                        <span class="tag default" style="font-size: 0.65rem; padding: 2px 6px;">{{ tactic.replace('-', ' ').upper() }}</span>
+                        {% endfor %}
+                    </div>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Related Actors -->
+        {% set related = actor.related_actors | from_json %}
+        {% set has_similar_actors = related | selectattr('type', 'equalto', 'similar') | list %}
+        {% if has_similar_actors %}
+        <div class="card">
+            <h3 class="section-title">Related Actors ({{ has_similar_actors | length }})</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                {% for rel in has_similar_actors %}
+                {% set related_uuid = rel.get('dest-uuid', '') %}
+                <a href="/actor/intrusion-set--{{ related_uuid }}" target="_blank" class="tag default"
+                   style="display: block; padding: 0.75rem; text-decoration: none; border: 1px solid var(--border-color); border-radius: var(--radius-sm); transition: all 0.2s;"
+                   onmouseover="this.style.borderColor='var(--primary)'; this.style.background='var(--bg-hover)'"
+                   onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='transparent'"
+                   title="Confidence: {{ rel.get('tags', ['Unknown'])[0] }}">
+                    <div style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">{{ related_uuid[:13] }}...</div>
+                    <div style="font-size: 0.85rem; font-weight: 600;">View Profile ↗</div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- References -->
+        {% if sorted_references %}
+        <div class="card">
+            <h3 class="section-title">References ({{ sorted_references | length }})</h3>
+            <ul style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+                {% for ref in sorted_references %}
+                <li style="margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                    <span style="position: absolute; left: 0; color: var(--primary);">🔗</span>
+                    <a href="{{ ref }}" target="_blank"
+                        style="color: var(--text-secondary); font-size: 0.9rem; text-decoration: none; word-break: break-all; line-height: 1.4;">
+                        {{ ref }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Profile History -->
+        {% if changelog %}
+        <div class="card">
+            <details>
+                <summary
+                    style="cursor: pointer; outline: none; list-style: none; display: flex; align-items: center; justify-content: space-between;">
+                    <h3 class="section-title" style="margin: 0; display: inline-block;">Profile History</h3>
+                    <span class="text-muted" style="font-size: 0.8rem;">{{ changelog|length }} updates</span>
+                </summary>
+
+                <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="text-align: left; color: var(--text-secondary);">
+                                <th style="padding: 0.5rem;">Date</th>
+                                <th style="padding: 0.5rem;">Action</th>
+                                <th style="padding: 0.5rem;">Field</th>
+                                <th style="padding: 0.5rem;">Changes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in changelog %}
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.5rem; white-space: nowrap;" class="mono text-muted">{{
+                                    log.timestamp.strftime('%Y-%m-%d') }}</td>
+                                <td style="padding: 0.5rem;">
+                                    {% if log.action == 'created' %}
+                                    <span class="tag success" style="font-size: 0.7rem;">Created</span>
+                                    {% else %}
+                                    <span class="tag blue" style="font-size: 0.7rem;">Updated</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 0.5rem;" class="mono">{{ log.field_name }}</td>
+                                <td style="padding: 0.5rem;">
+                                    {% if log.action == 'created' %}
+                                    <span class="text-muted">Initial creation</span>
+                                    {% else %}
+                                    {{ log.new_value[:100] }}{% if log.new_value|length > 100 %}...{% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

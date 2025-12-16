@@ -1,0 +1,39 @@
+# Dockerfile for TA Profiler Web Application
+# This container serves the Flask web interface and reads from the shared database
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY app.py .
+COPY database.py .
+COPY models/ models/
+COPY services/ services/
+COPY templates/ templates/
+COPY static/ static/
+
+# Create data directory for shared volume
+RUN mkdir -p /data
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV DATABASE_URI=sqlite:////data/taprofiler.db
+ENV FLASK_APP=app.py
+
+# Expose port 5000
+EXPOSE 5000
+
+# Run the Flask application
+CMD ["python", "app.py"]

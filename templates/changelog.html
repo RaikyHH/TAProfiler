@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px; margin-top: 2rem;">
+    <div class="card">
+        <h2 class="section-title" style="font-size: 1.5rem; margin-bottom: 1.5rem;">Global Changelog</h2>
+
+        {% if logs %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                        <th style="padding: 0.75rem; color: var(--text-secondary);">Timestamp</th>
+                        <th style="padding: 0.75rem; color: var(--text-secondary);">Actor</th>
+                        <th style="padding: 0.75rem; color: var(--text-secondary);">Action</th>
+                        <th style="padding: 0.75rem; color: var(--text-secondary);">Field</th>
+                        <th style="padding: 0.75rem; color: var(--text-secondary);">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log, actor_name in logs %}
+                    <tr style="border-bottom: 1px solid var(--primary-light);">
+                        <td style="padding: 0.75rem; white-space: nowrap;" class="mono text-muted">{{
+                            log.timestamp[:19].replace('T', ' ') }}</td>
+                        <td style="padding: 0.75rem;">
+                            <a href="/actor/{{ log.actor_id }}"
+                                style="color: var(--text-main); text-decoration: none; font-weight: 500;">
+                                {{ actor_name }}
+                            </a>
+                        </td>
+                        <td style="padding: 0.75rem;">
+                            {% if log.action == 'create' %}
+                            <span class="tag success">Created</span>
+                            {% else %}
+                            <span class="tag blue">Updated</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 0.75rem;" class="mono">{{ log.field_name }}</td>
+                        <td style="padding: 0.75rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                            {% if log.action == 'create' %}
+                            <span class="text-muted">New actor profile created</span>
+                            {% else %}
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <span style="color: var(--danger);">Old: {{ log.old_value[:50] }}{{ '...' if
+                                    log.old_value|length > 50 else '' }}</span>
+                                <span style="color: var(--success);">New: {{ log.new_value[:50] }}{{ '...' if
+                                    log.new_value|length > 50 else '' }}</span>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <p>No changes recorded yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

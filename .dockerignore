@@ -1,0 +1,76 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# Database files (will be in volume)
+*.db
+*.db-journal
+instance/
+
+# Environment files (use docker-compose env vars instead)
+.env
+.env.local
+.env.example
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Test files
+test_*.py
+*_test.py
+tests/
+*.html
+
+# Docker files (not needed inside containers)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts
+start.sh
+start.bat
+run.bat
+*_database.py
+clean_*.py
+debug_*.py
+
+# Example and test data
+*example*.json
+*test*.json
+layer*.json
+
+# Cache files (auto-generated at runtime)
+malpedia_all_actors.json
+malpedia_actors.json
+misp_intrusion_set.json
+feedly_mappings.json
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+NUL

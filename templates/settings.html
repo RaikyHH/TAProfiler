@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card">
+        <h2 class="section-title">Organization Profile</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Define your organization's characteristics to automatically identify relevant threats.
+        </p>
+
+        {% if saved %}
+        <div
+            style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid rgba(16, 185, 129, 0.3);">
+            Settings saved successfully!
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/settings">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Organization
+                    Name</label>
+                <input type="text" name="name" value="{{ profile.name }}" class="filter-input"
+                    style="width: 100%; box-sizing: border-box;" required>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Sector</label>
+                <select name="sector" class="filter-input" style="width: 100%; box-sizing: border-box;">
+                    <option value="">Select Sector...</option>
+                    <option value="Finance" {% if profile.sector=='Finance' %}selected{% endif %}>Finance</option>
+                    <option value="Energy" {% if profile.sector=='Energy' %}selected{% endif %}>Energy</option>
+                    <option value="Healthcare" {% if profile.sector=='Healthcare' %}selected{% endif %}>Healthcare
+                    </option>
+                    <option value="Government" {% if profile.sector=='Government' %}selected{% endif %}>Government
+                    </option>
+                    <option value="Technology" {% if profile.sector=='Technology' %}selected{% endif %}>Technology
+                    </option>
+                    <option value="Defense" {% if profile.sector=='Defense' %}selected{% endif %}>Defense</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Country</label>
+                <select name="country" class="filter-input" style="width: 100%; box-sizing: border-box;">
+                    <option value="">Select Country...</option>
+                    <option value="USA" {% if profile.country=='USA' %}selected{% endif %}>USA</option>
+                    <option value="China" {% if profile.country=='China' %}selected{% endif %}>China</option>
+                    <option value="Russia" {% if profile.country=='Russia' %}selected{% endif %}>Russia</option>
+                    <option value="Iran" {% if profile.country=='Iran' %}selected{% endif %}>Iran</option>
+                    <option value="Germany" {% if profile.country=='Germany' %}selected{% endif %}>Germany</option>
+                    <option value="UK" {% if profile.country=='UK' %}selected{% endif %}>UK</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%;">Save Settings</button>
+        </form>
+    </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h2 class="section-title">Trusted Reference Domains</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Configure which domains you trust for intelligence references. URLs from trusted domains will appear first in actor reference sections.
+        </p>
+
+        <form method="POST" action="/settings/trusted-domains">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    Trusted Domains (one per line)
+                </label>
+                <textarea name="trusted_domains" class="filter-input"
+                    style="width: 100%; box-sizing: border-box; min-height: 200px; font-family: monospace; font-size: 0.9rem;"
+                    placeholder="malpedia.caad.fkie.fraunhofer.de&#10;attack.mitre.org&#10;securelist.com&#10;blog.talosintelligence.com">{{ trusted_domains_text }}</textarea>
+            </div>
+
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0; line-height: 1.6;">
+                    <strong style="color: var(--text-main);">Examples:</strong><br>
+                    • malpedia.caad.fkie.fraunhofer.de<br>
+                    • attack.mitre.org<br>
+                    • securelist.com<br>
+                    • blog.talosintelligence.com<br>
+                    • unit42.paloaltonetworks.com<br>
+                    • cybersecurity.att.com
+                </p>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%;">Save Trusted Domains</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

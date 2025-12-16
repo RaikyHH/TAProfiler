@@ -1,0 +1,36 @@
+# Dockerfile for TA-Enricher Service
+# This container handles data ingestion and enrichment from MITRE ATT&CK and Feedly
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install schedule library for periodic tasks
+RUN pip install --no-cache-dir schedule
+
+# Copy application code
+COPY database.py .
+COPY enricher.py .
+COPY models/ models/
+COPY services/ services/
+
+# Create data directory for shared volume
+RUN mkdir -p /data
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV DATABASE_URI=sqlite:////data/taprofiler.db
+
+# Run the enricher service
+CMD ["python", "enricher.py"]

@@ -1,0 +1,48 @@
+# Environment files
+.env
+.env.local
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Database files
+*.db
+*.db-journal
+instance/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker volumes
+ta-data/
+
+# Temporary files
+*.tmp
+*.bak
+layer.json
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Cache files (auto-generated)
+malpedia_all_actors.json
+malpedia_actors.json
+misp_intrusion_set.json
+feedly_mappings.json

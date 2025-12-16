@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  enricher:
+    build:
+      context: .
+      dockerfile: Dockerfile.enricher
+    container_name: ta-enricher
+    environment:
+      - DATABASE_URI=sqlite:////data/taprofiler.db
+      - FEEDLY_API_TOKEN=${FEEDLY_API_TOKEN}
+      - MAX_ACTORS_TO_ENRICH=${MAX_ACTORS_TO_ENRICH:-0}
+      - ENRICHER_MODE=${ENRICHER_MODE:-once}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-}
+    volumes:
+      - ta-data:/data
+    restart: "no"
+    networks:
+      - ta-network
+
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile.webapp
+    container_name: ta-webapp
+    environment:
+      - DATABASE_URI=sqlite:////data/taprofiler.db
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - SECRET_KEY=${SECRET_KEY:-}
+      - WTF_CSRF_ENABLED=True
+    volumes:
+      - ta-data:/data:ro
+    ports:
+      - "5000:5000"
+    depends_on:
+      - enricher
+    restart: unless-stopped
+    networks:
+      - ta-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  ta-data:
+    driver: local
+
+networks:
+  ta-network:
+    driver: bridge
