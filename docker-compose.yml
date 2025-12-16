@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   enricher:
-    build:
-      context: .
-      dockerfile: Dockerfile.enricher
+    image: ghcr.io/raikyhh/taprofiler-enricher:main
     container_name: ta-enricher
     environment:
       - DATABASE_URI=sqlite:////data/taprofiler.db
@@ -21,9 +19,7 @@ services:
       - ta-network
 
   webapp:
-    build:
-      context: .
-      dockerfile: Dockerfile.webapp
+    image: ghcr.io/raikyhh/taprofiler-webapp:main
     container_name: ta-webapp
     environment:
       - DATABASE_URI=sqlite:////data/taprofiler.db
