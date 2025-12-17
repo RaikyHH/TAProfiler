@@ -25,12 +25,19 @@ COPY enricher.py .
 COPY models/ models/
 COPY services/ services/
 
+# Copy entrypoint script
+COPY enricher-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Create data directory for shared volume
 RUN mkdir -p /data
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV DATABASE_URI=sqlite:////data/taprofiler.db
+
+# Use entrypoint to set permissions
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Run the enricher service
 CMD ["python", "enricher.py"]
