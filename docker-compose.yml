@@ -27,7 +27,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-}
       - WTF_CSRF_ENABLED=True
     volumes:
-      - ta-data:/data:ro
+      - ta-data:/data
     ports:
       - "5000:5000"
     depends_on:

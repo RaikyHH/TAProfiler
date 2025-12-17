@@ -8,10 +8,15 @@ def generate_actor_avatar(actor):
     Generates a professional, abstract geometric 'fingerprint' avatar.
     Uses a monochrome/stealth palette for the enterprise theme.
     """
-    # 1. Deterministic Seed
-    seed_str = f"{actor.id}-{actor.name}"
-    seed_int = int(hashlib.sha256(seed_str.encode('utf-8')).hexdigest(), 16)
-    random.seed(seed_int)
+    try:
+        # 1. Deterministic Seed
+        seed_str = f"{actor.id}-{actor.name}"
+        seed_int = int(hashlib.sha256(seed_str.encode('utf-8')).hexdigest(), 16)
+        random.seed(seed_int)
+    except Exception:
+        # Fallback if actor data is invalid
+        seed_int = random.randint(0, 999999)
+        random.seed(seed_int)
 
     # 2. Color Palette (Monochrome/Stealth with Dark Red Accents)
     # Format: (Primary, Secondary, Accent)
@@ -27,9 +32,11 @@ def generate_actor_avatar(actor):
     
     origins = []
     if actor.origin_countries:
-        try: origins = json.loads(actor.origin_countries)
-        except: pass
-        
+        try:
+            origins = json.loads(actor.origin_countries) if isinstance(actor.origin_countries, str) else actor.origin_countries
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     palette = palettes["Unknown"]
     if origins:
         for origin in origins:
@@ -113,7 +120,11 @@ def generate_actor_avatar(actor):
             svg_elements.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" fill="none" stroke="{color}" stroke-width="2" opacity="0.5" transform="rotate({random.randint(-45, 45)} {x+w/2} {y+h/2})"/>')
 
     # Overlay Initials
-    initials = actor.name[:2].upper()
+    try:
+        initials = actor.name[:2].upper() if actor.name and len(actor.name) >= 2 else "??"
+    except (AttributeError, TypeError):
+        initials = "??"
+
     svg_elements.append(f'''
         <text x="50%" y="50%" dy=".35em" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="60" fill="{light}" opacity="0.1">{initials}</text>
     ''')
@@ -124,5 +135,5 @@ def generate_actor_avatar(actor):
         {''.join(svg_elements)}
     </svg>
     '''
-    
+
     return svg_content.strip()
